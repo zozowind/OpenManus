@@ -24,9 +24,7 @@ class PlanningAgent(ToolCallAgent):
     system_prompt: str = PLANNING_SYSTEM_PROMPT
     next_step_prompt: str = NEXT_STEP_PROMPT
 
-    available_tools: ToolCollection = Field(
-        default_factory=lambda: ToolCollection(PlanningTool(), Terminate())
-    )
+    available_tools: ToolCollection = Field(default_factory=ToolCollection)
     tool_choices: Literal["none", "auto", "required"] = "auto"
     special_tool_names: List[str] = Field(default_factory=lambda: [Terminate().name])
 
@@ -38,6 +36,9 @@ class PlanningAgent(ToolCallAgent):
     current_step_index: Optional[int] = None
 
     max_steps: int = 20
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     @model_validator(mode="after")
     def initialize_plan_and_verify_tools(self) -> "PlanningAgent":

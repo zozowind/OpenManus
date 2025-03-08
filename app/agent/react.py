@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
 from typing import Optional
-
 from pydantic import Field
 
 from app.agent.base import BaseAgent
 from app.llm import LLM
 from app.schema import AgentState, Memory
+from app.config import config
 
 
 class ReActAgent(BaseAgent, ABC):
-    name: str
+    name: str = "react"
     description: Optional[str] = None
 
     system_prompt: Optional[str] = None
@@ -22,6 +22,10 @@ class ReActAgent(BaseAgent, ABC):
     max_steps: int = 10
     current_step: int = 0
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Initialize tools based on configuration
+        
     @abstractmethod
     async def think(self) -> bool:
         """Process current state and decide next action"""

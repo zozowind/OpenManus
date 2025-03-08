@@ -20,3 +20,65 @@ temperature = 0.0
 model = "claude-3-5-sonnet"
 base_url = "https://api.openai.com/v1"
 api_key = "sk-..."
+
+[tool.tools.planning_tool]
+name="planning_tool"
+
+[tool.tools.terminate]
+name="terminate"
+
+[tool.tools.bash]
+name="bash"
+
+[tool.tools.str_replace_editor]
+name="str_replace_editor"
+
+[tool.tools.create_chat_completion]
+name="create_chat_completion"
+
+[tool.tools.python_execute]
+name="python_execute"
+
+[tool.tools.google_search]
+name="google_search"
+
+[tool.tools.baidu_search]
+name="baidu_search"
+
+[tool.tools.browser_use_tool]
+name="browser_use_tool"
+
+[tool.tools.file_saver]
+name="file_saver"
+config = { save_path = "workspace/output" }
+
+[agent.agents.Manus]
+available_tools = ["python_execute", "baidu_search", "browser_use_tool", "file_saver", "terminate"]
+system_prompt = "You are OpenManus, an all-capable AI assistant, aimed at solving any task presented by the user. You have various tools at your disposal that you can call upon to efficiently complete complex requests. Whether it's programming, information retrieval, file processing, or web browsing, you can handle it all."
+next_step_prompt = """You can interact with the computer using PythonExecute, save important content and information files through FileSaver, open browsers with BrowserUseTool, and retrieve information using GoogleSearch.
+
+PythonExecute: Execute Python code to interact with the computer system, data processing, automation tasks, etc.
+
+FileSaver: Save files locally, such as txt, py, html, etc.
+
+BrowserUseTool: Open, browse, and use web browsers.If you open a local HTML file, you must provide the absolute path to the file.
+
+BaiduSearch: Perform web information retrieval
+
+Based on user needs, proactively select the most appropriate tool or combination of tools. For complex tasks, you can break down the problem and use different tools step by step to solve it. After using each tool, clearly explain the execution results and suggest the next steps.
+"""
+
+[agent.agents.planning]
+available_tools = ["planning_tool", "terminate"]
+max_steps = 20
+
+[agent.agents.swe]
+available_tools = ["bash", "str_replace_editor", "terminate"]
+max_steps = 30
+
+[agent.agents.react]
+max_steps = 10
+
+[agent.agents.toolcall]
+available_tools = ["create_chat_completion", "terminate"]
+max_steps = 30

@@ -1,17 +1,35 @@
 import json
-from typing import Any, List, Literal
+from typing import Any, List, Literal, Dict, Type
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from app.agent.react import ReActAgent
 from app.logger import logger
 from app.prompt.toolcall import NEXT_STEP_PROMPT, SYSTEM_PROMPT
 from app.schema import AgentState, Message, ToolCall
-from app.tool import CreateChatCompletion, Terminate, ToolCollection
+from app.tool import Bash, CreateChatCompletion, PlanningTool, Terminate, ToolCollection, BaseTool
+from app.config import config
+from app.tool.browser_use_tool import BrowserUseTool
+from app.tool.file_saver import FileSaver
+from app.tool.google_search import GoogleSearch
+from app.tool.baidu_search import BaiduSearch
+from app.tool.python_execute import PythonExecute
 
 
 TOOL_CALL_REQUIRED = "Tool calls required but none provided"
 
+# Tool name to class mapping
+TOOL_REGISTRY: Dict[str, Type[BaseTool]] = {
+    "baidu_search": BaiduSearch,
+    "bash": Bash,
+    "browser_use_tool": BrowserUseTool,
+    "create_chat_completion": CreateChatCompletion,
+    "file_saver": FileSaver,
+    "google_search": GoogleSearch,
+    "planning_tool": PlanningTool,
+    "python_execute": PythonExecute,
+    "terminate": Terminate,
+}
 
 class ToolCallAgent(ReActAgent):
     """Base agent class for handling tool/function calls with enhanced abstraction"""
@@ -22,15 +40,34 @@ class ToolCallAgent(ReActAgent):
     system_prompt: str = SYSTEM_PROMPT
     next_step_prompt: str = NEXT_STEP_PROMPT
 
-    available_tools: ToolCollection = ToolCollection(
-        CreateChatCompletion(), Terminate()
-    )
+    available_tools: ToolCollection = Field(default_factory=ToolCollection)
     tool_choices: Literal["none", "auto", "required"] = "auto"
     special_tool_names: List[str] = Field(default_factory=lambda: [Terminate().name])
 
     tool_calls: List[ToolCall] = Field(default_factory=list)
 
     max_steps: int = 30
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Initialize tools based on configuration
+        tools = []
+        # Load agent configuration
+        agent_config = config.get_agent_config(self.name)
+        if agent_config:
+            for tool_name in agent_config.available_tools:
+                if tool_name in TOOL_REGISTRY:
+                    tool_class = TOOL_REGISTRY[tool_name]
+                    tool_config = config.get_tool_config(tool_name)
+                    if tool_config:
+                        # Initialize tool with its configuration
+                        tool = tool_class(**tool_config.config)
+                    else:
+                        # Initialize tool with default settings
+                        tool = tool_class()
+                    tools.append(tool)
+
+        self.available_tools = ToolCollection(*tools)
 
     async def think(self) -> bool:
         """Process current state and decide next actions using tools"""

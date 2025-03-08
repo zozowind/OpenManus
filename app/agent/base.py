@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, model_validator
 from app.llm import LLM
 from app.logger import logger
 from app.schema import AgentState, Memory, Message
+from app.config import config
 
 
 class BaseAgent(BaseModel, ABC):
@@ -40,6 +41,19 @@ class BaseAgent(BaseModel, ABC):
     current_step: int = Field(default=0, description="Current step in execution")
 
     duplicate_threshold: int = 2
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Load agent configuration
+        agent_config = config.get_agent_config(self.name)
+        if agent_config:
+            # Override default values with configuration
+            if agent_config.system_prompt:
+                self.system_prompt = agent_config.system_prompt
+            if agent_config.next_step_prompt:
+                self.next_step_prompt = agent_config.next_step_prompt
+            if agent_config.max_steps:
+                self.max_steps = agent_config.max_steps
 
     class Config:
         arbitrary_types_allowed = True
