@@ -77,33 +77,69 @@ source .venv/bin/activate  # Unix/macOS 系统
 uv pip install -r requirements.txt
 ```
 
+因为brave-search依赖库冲突, 需要单独安装
+```
+openai 1.58.1 requires httpx>=0.23.0, <1
+browser-use 0.1.40 requires httpx>=0.27.2
+brave-search 0.1.8 requires httpx>=0.25.2, <0.26.0
+```
+```bash
+pip install brave-search 
+```
+
 ## 配置说明
 
-OpenManus 需要配置使用的 LLM API，请按以下步骤设置：
+### Configuration 更新
+OpenManus 现在支持更灵活的代理 (Agent) 和工具 (Tool) 配置，所有代理和工具的配置都集中管理于 `config.toml` 文件中。
 
-1. 在 `config` 目录创建 `config.toml` 文件（可从示例复制）：
-
+#### 1. 复制配置模板
+请先复制示例配置文件：
 ```bash
 cp config/config.example.toml config/config.toml
 ```
 
-2. 编辑 `config/config.toml` 添加 API 密钥和自定义设置：
-
+#### 2. 配置 LLM
+在 `config/config.toml` 文件中，`llm` 配置部分定义了 LLM 模型的相关参数，例如：
 ```toml
-# 全局 LLM 配置
 [llm]
 model = "gpt-4o"
 base_url = "https://api.openai.com/v1"
-api_key = "sk-..."  # 替换为真实 API 密钥
+api_key = "sk-..."  # 替换为你的实际 API Key
 max_tokens = 4096
 temperature = 0.0
-
-# 可选特定 LLM 模型配置
-[llm.vision]
-model = "gpt-4o"
-base_url = "https://api.openai.com/v1"
-api_key = "sk-..."  # 替换为真实 API 密钥
 ```
+
+#### 3. 配置代理 (Agent)
+`agent` 配置部分允许自定义每个代理的工具、系统提示和最大执行步数。例如：
+```toml
+[agent.agents.Manus]
+available_tools = ["python_execute", "baidu_search", "browser_use_tool", "file_saver", "terminate"]
+system_prompt = "You are OpenManus, an all-capable AI assistant..."
+next_step_prompt = """You can interact with the computer using PythonExecute..."""
+```
+在此配置中：
+- `available_tools` 指定了该代理可用的工具。
+- `system_prompt` 是该代理的系统提示信息。
+- `next_step_prompt` 定义了如何指导代理执行下一步操作。
+
+#### 4. 配置工具 (Tool)
+现在，所有工具的配置都在 `tool` 部分进行管理。例如：
+```toml
+[tool.tools.baidu_search]
+name="baidu_search"
+
+[tool.tools.brave_search]
+name="brave_search"
+config = { api_key = "your brave search api key" }
+
+[tool.tools.file_saver]
+name="file_saver"
+config = { save_path = "workspace/output" }
+```
+其中：
+- `name` 指定工具的名称。
+- `config` 允许为工具提供额外的配置参数，例如 `file_saver` 可以自定义 `save_path` 目录。
+
 
 ## 快速启动
 

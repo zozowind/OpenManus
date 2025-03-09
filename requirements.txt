@@ -21,4 +21,3 @@ pydantic_core~=2.27.2
 colorama~=0.4.6
 playwright~=1.49.1
 baidusearch~=1.0.3
-brave~=0.1
