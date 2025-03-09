@@ -45,6 +45,10 @@ name="google_search"
 [tool.tools.baidu_search]
 name="baidu_search"
 
+[tool.tools.brave_search]
+name="brave_search"
+config = { api_key = "your brave search api key" }
+
 [tool.tools.browser_use_tool]
 name="browser_use_tool"
 

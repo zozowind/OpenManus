@@ -13,6 +13,7 @@ from app.tool.browser_use_tool import BrowserUseTool
 from app.tool.file_saver import FileSaver
 from app.tool.google_search import GoogleSearch
 from app.tool.baidu_search import BaiduSearch
+from app.tool.brave_search import BraveSearch
 from app.tool.python_execute import PythonExecute
 
 
@@ -22,6 +23,7 @@ TOOL_CALL_REQUIRED = "Tool calls required but none provided"
 TOOL_REGISTRY: Dict[str, Type[BaseTool]] = {
     "baidu_search": BaiduSearch,
     "bash": Bash,
+    "brave_search":  BraveSearch,
     "browser_use_tool": BrowserUseTool,
     "create_chat_completion": CreateChatCompletion,
     "file_saver": FileSaver,
